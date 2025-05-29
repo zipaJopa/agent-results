@@ -26,31 +26,43 @@ AGENT_RESULTS_REPO_FULL = f"{OWNER}/{AGENT_RESULTS_REPO_NAME}"
 OUTPUTS_DIR = "outputs"
 PROCESSED_OUTPUTS_DIR = "processed_outputs"
 METRICS_DIR = "metrics"
-DASHBOARD_FILE = "dashboard.md"
+DASHBOARD_FILE = "CONSTELLATION_STATUS.md" # Matching the self_test.py output file
 
 # Value estimation logic (can be expanded)
+# For crypto agents, 'pnl_usdt' field in their result payload is prioritized.
 AGENT_VALUE_ESTIMATES = {
-    "github_arbitrage": {"type": "per_item", "value": 125.0},
-    "ai_wrapper_factory": {"type": "per_item", "value": 1250.0},
-    "saas_template_mill": {"type": "per_item", "value": 6000.0},
-    "automation_broker": {"type": "per_item", "value": 2750.0},
-    "crypto_degen": {"type": "payload_field", "field": "pnl_usd", "default": 0.0},
-    "trade_signal": {"type": "payload_field", "field": "pnl_usd", "default": 0.0}, # Assuming direct P&L
-    "influencer_farm": {"type": "payload_field", "field": "revenue_generated_usd", "default": 0.0},
-    "course_generator": {"type": "payload_field", "field": "course_sale_value_usd", "default": 0.0},
-    "patent_scraper": {"type": "per_item_conditional", "count_field": "valuable_patents_found_count", "value_per_item": 1000.0},
-    "domain_flipper": {"type": "payload_field", "field": "profit_usd", "default": 50.0},
-    "affiliate_army": {"type": "payload_field", "field": "commission_usd", "default": 0.0},
-    "lead_magnet_factory": {"type": "per_item", "value": 200.0},
-    "ai_copywriter_swarm": {"type": "per_item", "value": 50.0},
-    "price_scraper_network": {"type": "payload_field", "field": "savings_found_usd", "default": 0.0},
-    "startup_idea_generator": {"type": "per_item_conditional", "count_field": "validated_ideas_count", "value_per_item": 100.0},
-    "harvest": {"type": "count_only"}, # Provides leads, value captured by downstream agents
-    "self_healing": {"type": "count_only"}, # Value is operational stability, harder to quantify directly here
-    "performance_optimization": {"type": "count_only"}, # Value is cost saving or improved UX
-    "financial_management": {"type": "count_only"}, # Tracks internal finances or user finances
-    # Default for unknown task types or those not explicitly listed
-    "unknown_type_default": {"type": "count_only"},
+    # Crypto Agents (prioritize pnl_usdt from payload)
+    "crypto-trading-agent": {"type": "payload_field", "field": "pnl_usdt", "default": 0.0, "value_category": "crypto"},
+    "memecoin-detector-agent": {"type": "payload_field", "field": "pnl_usdt", "default": 0.0, "value_category": "crypto"},
+    "defi-yield-farming-agent": {"type": "payload_field", "field": "pnl_usdt", "default": 0.0, "value_category": "crypto"},
+    "pionex-trader-usdt-v1": {"type": "payload_field", "field": "pnl_usdt", "default": 0.0, "value_category": "crypto"}, # From deploy_trading_agent.py
+
+    # Fiat/Estimated Value Agents
+    "github_arbitrage": {"type": "per_item", "value": 125.0, "value_category": "fiat"},
+    "github-arbitrage-agent": {"type": "payload_field", "field": "value_score", "default": 0.0, "value_category": "fiat"}, # From metaconstellation_core.py
+    "ai_wrapper_factory": {"type": "per_item", "value": 1250.0, "value_category": "fiat"},
+    "api-wrapper-factory-agent": {"type": "payload_field", "field": "value_score", "default": 0.0, "value_category": "fiat"}, # From metaconstellation_core.py
+    "saas_template_mill": {"type": "per_item", "value": 6000.0, "value_category": "fiat"},
+    "automation_broker": {"type": "per_item", "value": 2750.0, "value_category": "fiat"},
+    "influencer_farm": {"type": "payload_field", "field": "revenue_generated_usd", "default": 0.0, "value_category": "fiat"},
+    "course_generator": {"type": "payload_field", "field": "course_sale_value_usd", "default": 0.0, "value_category": "fiat"},
+    "patent_scraper": {"type": "per_item_conditional", "count_field": "valuable_patents_found_count", "value_per_item": 1000.0, "value_category": "fiat"},
+    "domain_flipper": {"type": "payload_field", "field": "profit_usd", "default": 50.0, "value_category": "fiat"},
+    "affiliate_army": {"type": "payload_field", "field": "commission_usd", "default": 0.0, "value_category": "fiat"},
+    "lead_magnet_factory": {"type": "per_item", "value": 200.0, "value_category": "fiat"},
+    "ai_copywriter_swarm": {"type": "per_item", "value": 50.0, "value_category": "fiat"},
+    "content-generation-agent": {"type": "payload_field", "field": "estimated_value_usd", "default": 10.0, "value_category": "fiat"}, # From metaconstellation_core.py
+    "price_scraper_network": {"type": "payload_field", "field": "savings_found_usd", "default": 0.0, "value_category": "fiat"},
+    "startup_idea_generator": {"type": "per_item_conditional", "count_field": "validated_ideas_count", "value_per_item": 100.0, "value_category": "fiat"},
+    
+    # Operational/Count-Only Agents (value captured downstream or operational)
+    "harvest": {"type": "count_only", "value_category": "operational"},
+    "self_healing": {"type": "count_only", "value_category": "operational"},
+    "performance_optimization": {"type": "count_only", "value_category": "operational"},
+    "financial_management": {"type": "count_only", "value_category": "operational"},
+    
+    # Default for unknown task types
+    "unknown_type_default": {"type": "count_only", "value_category": "unknown"},
 }
 
 
@@ -85,9 +97,9 @@ class GitHubInteraction:
                     print(f"Rate limit exceeded. Retrying in {sleep_duration:.2f}s (attempt {attempt+1}/{max_retries}).")
                     time.sleep(sleep_duration)
                     continue
-                elif e.response.status_code == 404 and method == "GET":
+                elif e.response.status_code == 404 and method == "GET": # File not found is okay for checks
                     return None
-                elif e.response.status_code == 422 and "No commit found for SHA" in e.response.text:
+                elif e.response.status_code == 422 and "No commit found for SHA" in e.response.text: # Trying to update a non-existent file with SHA
                      return {"error": "file_not_found_for_update", "sha": None}
                 print(f"GitHub API request failed ({method} {url}): {e.response.status_code} - {e.response.text}")
                 if attempt == max_retries - 1:
@@ -96,7 +108,7 @@ class GitHubInteraction:
                 print(f"GitHub API request failed ({method} {url}): {e}")
                 if attempt == max_retries - 1:
                     raise
-            time.sleep(2 ** attempt)
+            time.sleep(2 ** attempt) # Exponential backoff
         return {}
 
     def list_files(self, repo_full_name, path):
@@ -117,8 +129,9 @@ class GitHubInteraction:
     def create_or_update_file(self, repo_full_name, file_path, content_str, commit_message, current_sha=None, branch="main"):
         encoded_content = base64.b64encode(content_str.encode('utf-8')).decode('utf-8')
         payload = {"message": commit_message, "content": encoded_content, "branch": branch}
-        if current_sha:
+        if current_sha: # If SHA is provided, it's an update
             payload["sha"] = current_sha
+        
         endpoint = f"/repos/{repo_full_name}/contents/{file_path}"
         response = self._request("PUT", endpoint, data=payload)
         return response and "content" in response and "sha" in response["content"]
@@ -127,7 +140,7 @@ class GitHubInteraction:
         payload = {"message": commit_message, "sha": sha, "branch": branch}
         endpoint = f"/repos/{repo_full_name}/contents/{file_path}"
         response = self._request("DELETE", endpoint, data=payload)
-        return response is not None
+        return response is not None # DELETE returns 204 No Content on success, response is {}
 
 
 # --- Results Tracking Logic ---
@@ -140,23 +153,37 @@ class ResultsTracker:
     def _load_daily_metrics(self):
         print(f"Loading existing daily metrics from {self.daily_metrics_path}...")
         content_str, sha = self.gh.get_file_content_and_sha(AGENT_RESULTS_REPO_FULL, self.daily_metrics_path)
+        
+        default_metrics = {
+            "date": self.today_date_str,
+            "grand_total_value_usd": 0.0,
+            "total_crypto_pnl_usd": 0.0,
+            "total_fiat_value_usd": 0.0,
+            "crypto_trades_count": 0,
+            "fiat_tasks_count": 0,
+            "operational_tasks_count": 0,
+            "pnl_by_crypto_agent": {}, # {agent_type: total_pnl}
+            "value_by_fiat_agent": {}, # {agent_type: total_value}
+            "tasks_by_operational_agent": {}, # {agent_type: count}
+            "detailed_value_breakdown": [], # List of {task_id, agent_type, value_usd, value_category, description, file_path, processed_at}
+            "processed_result_file_shas": [], # List of SHAs of result files already included
+            "errors_processing_results": [] # List of {file_path, error_message, timestamp}
+        }
+
         if content_str:
             try:
                 metrics = json.loads(content_str)
-                print("Existing metrics loaded.")
+                # Ensure all default keys are present
+                for key, default_value in default_metrics.items():
+                    if key not in metrics:
+                        metrics[key] = default_value
+                print("Existing metrics loaded and validated.")
                 return metrics, sha
             except json.JSONDecodeError:
                 print(f"Error parsing existing metrics file. Initializing new metrics.")
         
         print("No existing metrics file found or file was invalid. Initializing new metrics for today.")
-        return {
-            "date": self.today_date_str,
-            "total_value_generated_usd": 0.0,
-            "tasks_with_results_processed_count": 0, # Tasks whose results were successfully processed by this tracker
-            "value_by_agent_type": {},
-            "detailed_value_breakdown": [], # List of {task_id, agent_type, value_usd, description}
-            "processed_result_file_shas": [] # List of SHAs of result files already included
-        }, None
+        return default_metrics, None
 
     def _save_daily_metrics(self, metrics_data, current_sha):
         print(f"Saving daily metrics to {self.daily_metrics_path}...")
@@ -167,28 +194,44 @@ class ResultsTracker:
     def _calculate_task_value(self, task_type, result_payload):
         value_config = AGENT_VALUE_ESTIMATES.get(task_type, AGENT_VALUE_ESTIMATES["unknown_type_default"])
         task_value = 0.0
+        value_category = value_config.get("value_category", "unknown")
         description = f"Task type: {task_type}"
 
+        # Prioritize pnl_usdt if present, especially for crypto agents
+        if "pnl_usdt" in result_payload:
+            try:
+                task_value = float(result_payload["pnl_usdt"])
+                value_category = "crypto" # Override category if pnl_usdt is found
+                description = f"{task_type} P&L: {task_value:.2f} USD"
+                return task_value, value_category, description
+            except (ValueError, TypeError):
+                print(f"Warning: Could not convert pnl_usdt '{result_payload['pnl_usdt']}' to float for {task_type}. Using configured method.")
+        
+        # Fallback to configured value calculation
         if value_config["type"] == "per_item":
-            # Assumes the existence of the result file means one successful item
             task_value = value_config["value"]
             description = f"Completed {task_type} task."
         elif value_config["type"] == "payload_field":
-            task_value = result_payload.get(value_config["field"], value_config["default"])
-            description = f"{task_type} result: {value_config['field']} = {task_value:.2f} USD"
+            task_value = result_payload.get(value_config["field"], value_config.get("default", 0.0))
+            description = f"{task_type} result: {value_config['field']} = {task_value}" # Value might not be USD here
+            if isinstance(task_value, (int, float)):
+                 description += " USD" if "usd" in value_config['field'].lower() or value_category == "fiat" else ""
         elif value_config["type"] == "per_item_conditional":
             item_count = result_payload.get(value_config["count_field"], 0)
             task_value = item_count * value_config["value_per_item"]
             description = f"{task_type} found {item_count} items, value {task_value:.2f} USD."
+        elif value_config["type"] == "count_only":
+            task_value = 0.0 # No direct monetary value, just counted
+            description = f"Processed {task_type} task (operational)."
         
         # Ensure task_value is float
         try:
             task_value = float(task_value)
         except (ValueError, TypeError):
-            print(f"Warning: Could not convert value '{task_value}' to float for task type {task_type}. Defaulting to 0.")
+            print(f"Warning: Could not convert final value '{task_value}' to float for task type {task_type}. Defaulting to 0.")
             task_value = 0.0
 
-        return task_value, description
+        return task_value, value_category, description
 
     def _archive_processed_file(self, file_info, daily_results_path):
         source_path = file_info["path"]
@@ -215,8 +258,7 @@ class ResultsTracker:
         commit_delete_msg = f"Delete processed result file: {file_name} from {daily_results_path}"
         if not self.gh.delete_file(AGENT_RESULTS_REPO_FULL, source_path, source_sha, commit_delete_msg):
             print(f"Error: Failed to delete {source_path} after archiving. Manual cleanup may be needed.")
-            # This is a non-ideal state, but the SHA tracking should prevent re-processing value.
-            return False
+            return False # Non-ideal state, but SHA tracking prevents re-processing value.
         
         print(f"Successfully archived {file_name}.")
         return True
@@ -230,10 +272,9 @@ class ResultsTracker:
 
         if not result_files:
             print(f"No result files found in {daily_results_path} for today.")
-            # Still save metrics if it's newly initialized or if controller might have updated it
             if metrics_file_sha is None: # If it was newly initialized
                  self._save_daily_metrics(daily_metrics, metrics_file_sha)
-            self.generate_dashboard_markdown(daily_metrics) # Generate dashboard even if no new results
+            self.generate_dashboard_markdown(daily_metrics)
             print("--- Results Processing Finished (No new files) ---")
             return
 
@@ -245,108 +286,144 @@ class ResultsTracker:
             file_sha = file_info["sha"]
 
             if file_sha in daily_metrics["processed_result_file_shas"]:
-                # print(f"Skipping already processed file: {file_path} (SHA: {file_sha})")
-                continue
+                continue # Skip already processed file
             
             print(f"Processing new result file: {file_path} (SHA: {file_sha})")
             content_str, _ = self.gh.get_file_content_and_sha(AGENT_RESULTS_REPO_FULL, file_path)
             if not content_str:
-                print(f"Error: Could not get content for {file_path}. Skipping.")
+                err_msg = f"Could not get content for {file_path}"
+                print(f"Error: {err_msg}. Skipping.")
+                daily_metrics["errors_processing_results"].append({"file_path": file_path, "error": err_msg, "timestamp": datetime.now(timezone.utc).isoformat()})
                 continue
 
             try:
                 result_data = json.loads(content_str)
-                # Assuming result_data directly contains the payload from the agent
-                # And that task_id and task_type are in the filename or metadata if not in payload
-                # Example filename: outputs/YYYY-MM-DD/TASKTYPE_TASKID.json
-                file_name_parts = file_info["name"].replace(".json", "").split("_", 1)
+                file_name_parts = file_info["name"].replace(".json", "").split("_", 1) # Assumes AGENTTYPE_TASKID_TIMESTAMP.json or similar
                 task_type_from_filename = file_name_parts[0]
-                task_id_from_filename = file_name_parts[1] if len(file_name_parts) > 1 else "unknown_task_id"
+                task_id_from_filename = file_name_parts[1] if len(file_name_parts) > 1 else f"unknown_task_id_{file_info['name']}"
 
-                # Prefer task_type from payload if available, else from filename
-                task_type = result_data.get("task_type", task_type_from_filename)
+                task_type = result_data.get("agent_type", result_data.get("task_type", task_type_from_filename))
                 task_id = result_data.get("task_id", task_id_from_filename) 
                 
-                # The actual result payload might be nested, e.g. under a 'result' key or be the root
                 task_payload = result_data.get("result", result_data) if isinstance(result_data.get("result"), dict) else result_data
 
+                value_usd, value_category, value_desc = self._calculate_task_value(task_type, task_payload)
 
-                value_usd, value_desc = self._calculate_task_value(task_type, task_payload)
-
-                daily_metrics["tasks_with_results_processed_count"] += 1
-                daily_metrics["total_value_generated_usd"] += value_usd
+                if value_category == "crypto":
+                    daily_metrics["crypto_trades_count"] += 1
+                    daily_metrics["total_crypto_pnl_usd"] += value_usd
+                    daily_metrics["pnl_by_crypto_agent"].setdefault(task_type, 0.0)
+                    daily_metrics["pnl_by_crypto_agent"][task_type] += value_usd
+                elif value_category == "fiat":
+                    daily_metrics["fiat_tasks_count"] += 1
+                    daily_metrics["total_fiat_value_usd"] += value_usd
+                    daily_metrics["value_by_fiat_agent"].setdefault(task_type, 0.0)
+                    daily_metrics["value_by_fiat_agent"][task_type] += value_usd
+                elif value_category == "operational":
+                    daily_metrics["operational_tasks_count"] += 1
+                    daily_metrics["tasks_by_operational_agent"].setdefault(task_type, 0)
+                    daily_metrics["tasks_by_operational_agent"][task_type] += 1
                 
-                if task_type not in daily_metrics["value_by_agent_type"]:
-                    daily_metrics["value_by_agent_type"][task_type] = 0.0
-                daily_metrics["value_by_agent_type"][task_type] += value_usd
+                daily_metrics["grand_total_value_usd"] = daily_metrics["total_crypto_pnl_usd"] + daily_metrics["total_fiat_value_usd"]
                 
-                if value_usd > 0: # Only log detailed breakdown for tasks that generated value
-                    daily_metrics["detailed_value_breakdown"].append({
-                        "task_id": task_id,
-                        "file_path": file_path,
-                        "agent_type": task_type,
-                        "value_usd": value_usd,
-                        "description": value_desc,
-                        "processed_at": datetime.now(timezone.utc).isoformat()
-                    })
+                # Log all processed tasks, even with zero value, for completeness
+                daily_metrics["detailed_value_breakdown"].append({
+                    "task_id": task_id,
+                    "file_path": file_path,
+                    "agent_type": task_type,
+                    "value_usd": value_usd,
+                    "value_category": value_category,
+                    "description": value_desc,
+                    "processed_at": datetime.now(timezone.utc).isoformat()
+                })
                 
                 daily_metrics["processed_result_file_shas"].append(file_sha)
                 new_files_processed_this_run += 1
                 
-                # Archive the file after successful processing of its content
                 self._archive_processed_file(file_info, daily_results_path)
 
             except json.JSONDecodeError:
-                print(f"Error parsing JSON from result file {file_path}. Skipping.")
+                err_msg = f"Error parsing JSON from result file {file_path}"
+                print(f"Error: {err_msg}. Skipping.")
+                daily_metrics["errors_processing_results"].append({"file_path": file_path, "error": err_msg, "timestamp": datetime.now(timezone.utc).isoformat()})
             except Exception as e:
-                print(f"Unexpected error processing file {file_path}: {e}")
+                err_msg = f"Unexpected error processing file {file_path}: {str(e)}"
+                print(f"Error: {err_msg}")
+                daily_metrics["errors_processing_results"].append({"file_path": file_path, "error": err_msg, "timestamp": datetime.now(timezone.utc).isoformat()})
                 import traceback
                 traceback.print_exc()
         
-        if new_files_processed_this_run > 0:
+        if new_files_processed_this_run > 0 or daily_metrics["errors_processing_results"]:
             if self._save_daily_metrics(daily_metrics, metrics_file_sha):
-                 metrics_file_sha = self.gh.get_file_content_and_sha(AGENT_RESULTS_REPO_FULL, self.daily_metrics_path)[1] # refresh sha
+                 # Get the new SHA after saving, important if dashboard commit relies on this SHA
+                 _, metrics_file_sha = self.gh.get_file_content_and_sha(AGENT_RESULTS_REPO_FULL, self.daily_metrics_path)
             else:
                 print("CRITICAL: Failed to save updated daily metrics after processing new files.")
         else:
             print("No new result files were processed in this run.")
 
-        self.generate_dashboard_markdown(daily_metrics, metrics_file_sha) # Pass current metrics_file_sha for dashboard commit
+        self.generate_dashboard_markdown(daily_metrics)
         print(f"--- Results Processing Finished for {self.today_date_str} ---")
 
-    def generate_dashboard_markdown(self, metrics_data, metrics_file_sha):
+    def generate_dashboard_markdown(self, metrics_data):
         print(f"Generating dashboard markdown ({DASHBOARD_FILE})...")
         
         dashboard_content = [f"# AI Constellation Performance Dashboard - {metrics_data['date']}\n\n"]
-        dashboard_content.append(f"## Daily Summary ({metrics_data['date']})\n")
-        dashboard_content.append(f"- **Total Value Generated Today:** ${metrics_data['total_value_generated_usd']:.2f} USD\n")
-        dashboard_content.append(f"- **Tasks with Results Processed:** {metrics_data['tasks_with_results_processed_count']}\n")
+        dashboard_content.append(f"## Overall Summary ({metrics_data['date']})\n")
+        dashboard_content.append(f"- **Grand Total Value Generated (Crypto P&L + Fiat Value):** ${metrics_data['grand_total_value_usd']:.2f} USD\n")
+        dashboard_content.append(f"- **Total Crypto P&L:** ${metrics_data['total_crypto_pnl_usd']:.2f} USD from {metrics_data['crypto_trades_count']} trades/results\n")
+        dashboard_content.append(f"- **Total Estimated Fiat Value:** ${metrics_data['total_fiat_value_usd']:.2f} USD from {metrics_data['fiat_tasks_count']} tasks\n")
+        dashboard_content.append(f"- **Operational Tasks Processed:** {metrics_data['operational_tasks_count']}\n")
         
-        dashboard_content.append("\n### Value Breakdown by Agent Type (Today):\n")
-        if metrics_data["value_by_agent_type"]:
+        dashboard_content.append("\n### Crypto P&L Breakdown by Agent (Today):\n")
+        if metrics_data["pnl_by_crypto_agent"]:
+            dashboard_content.append("| Agent Type | P&L (USD) |\n")
+            dashboard_content.append("|------------|-----------|\n")
+            for agent_type, pnl in sorted(metrics_data["pnl_by_crypto_agent"].items(), key=lambda item: item[1], reverse=True):
+                dashboard_content.append(f"| {agent_type} | ${pnl:.2f} |\n")
+        else:
+            dashboard_content.append("No crypto P&L recorded today.\n")
+
+        dashboard_content.append("\n### Fiat Value Breakdown by Agent (Today):\n")
+        if metrics_data["value_by_fiat_agent"]:
             dashboard_content.append("| Agent Type | Value Generated (USD) |\n")
             dashboard_content.append("|------------|-----------------------|\n")
-            for agent_type, value in sorted(metrics_data["value_by_agent_type"].items(), key=lambda item: item[1], reverse=True):
+            for agent_type, value in sorted(metrics_data["value_by_fiat_agent"].items(), key=lambda item: item[1], reverse=True):
                 dashboard_content.append(f"| {agent_type} | ${value:.2f} |\n")
         else:
-            dashboard_content.append("No value generated by specific agent types today.\n")
+            dashboard_content.append("No fiat value generated by specific agent types today.\n")
 
-        dashboard_content.append("\n### Notable Value Events (Today):\n")
+        dashboard_content.append("\n### Top Value Events (Today - Crypto & Fiat):\n")
         if metrics_data["detailed_value_breakdown"]:
-            # Sort by value, descending, take top 10
-            top_events = sorted(metrics_data["detailed_value_breakdown"], key=lambda x: x.get("value_usd", 0.0), reverse=True)[:10]
-            for event in top_events:
-                dashboard_content.append(f"- **Task {event['task_id']} ({event['agent_type']}):** ${event['value_usd']:.2f} USD - {event['description']}\n")
+            top_events = sorted(
+                [event for event in metrics_data["detailed_value_breakdown"] if event.get("value_usd", 0.0) != 0], 
+                key=lambda x: abs(x.get("value_usd", 0.0)), 
+                reverse=True
+            )[:15] # Show top 15 events with non-zero value
+            if top_events:
+                for event in top_events:
+                    category_tag = f"[{event['value_category'].upper()}] " if event['value_category'] != 'unknown' else ""
+                    dashboard_content.append(f"- **{category_tag}{event['agent_type']} (Task {event.get('task_id', 'N/A')}):** ${event['value_usd']:.2f} USD - {event['description']}\n")
+            else:
+                dashboard_content.append("No specific value-generating events logged today.\n")
         else:
-            dashboard_content.append("No specific high-value events logged today.\n")
+            dashboard_content.append("No detailed value events logged today.\n")
+
+        if metrics_data["errors_processing_results"]:
+            dashboard_content.append("\n### Errors During Result Processing:\n")
+            for err in metrics_data["errors_processing_results"][:10]: # Show up to 10 errors
+                dashboard_content.append(f"- **File:** `{err['file_path']}` - **Error:** {err['error']} (at {err['timestamp']})\n")
+            if len(metrics_data["errors_processing_results"]) > 10:
+                dashboard_content.append(f"- ...and {len(metrics_data['errors_processing_results']) - 10} more errors.\n")
             
         dashboard_content.append(f"\n---\n*Last updated: {datetime.now(timezone.utc).isoformat()}*\n")
-        dashboard_content.append(f"*View detailed daily metrics [here](./{self.daily_metrics_path})*\n")
+        dashboard_content.append(f"*View detailed daily metrics JSON [here](./{self.daily_metrics_path})*\n")
+        dashboard_content.append(f"*This dashboard is updated by the `results_tracker.py` script in the `agent-results` repository.*")
 
-        # Get current SHA of dashboard.md to update it
+
         _, dashboard_sha = self.gh.get_file_content_and_sha(AGENT_RESULTS_REPO_FULL, DASHBOARD_FILE)
         
-        commit_message = f"Update dashboard for {metrics_data['date']}"
+        commit_message = f"Update performance dashboard for {metrics_data['date']}"
         if self.gh.create_or_update_file(AGENT_RESULTS_REPO_FULL, DASHBOARD_FILE, "".join(dashboard_content), commit_message, dashboard_sha):
             print("Dashboard markdown updated successfully.")
         else:
@@ -356,9 +433,10 @@ class ResultsTracker:
         self.process_daily_results()
 
 if __name__ == "__main__":
-    github_token = os.getenv("GITHUB_TOKEN")
+    github_token = os.getenv("GH_PAT") # Ensure GH_PAT is used, not GITHUB_TOKEN for cross-repo
     if not github_token:
-        print("Error: GITHUB_TOKEN environment variable not set.")
+        print("Error: GH_PAT environment variable not set.")
+        print("Please ensure GH_PAT (GitHub Personal Access Token with repo scope) is available to the script.")
     else:
         tracker = ResultsTracker(github_token)
         tracker.run()
