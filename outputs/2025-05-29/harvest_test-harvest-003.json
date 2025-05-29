@@ -1,0 +1,160 @@
+{
+  "task_id": "test-harvest-003",
+  "task_type": "harvest",
+  "processed_at": "2025-05-29T13:15:48.829204",
+  "result": {
+    "harvested_projects": [
+      {
+        "name": "cua",
+        "full_name": "trycua/cua",
+        "url": "https://github.com/trycua/cua",
+        "stars": 8154,
+        "description": "c/ua is the Docker Container for Computer-Use AI Agents.",
+        "language": "Python",
+        "topics": [
+          "agent",
+          "ai-agent",
+          "apple",
+          "computer-use",
+          "cua",
+          "lume",
+          "macos",
+          "manus",
+          "operator",
+          "swift",
+          "virtualization",
+          "virtualization-framework"
+        ],
+        "analyzed_at": "2025-05-29T13:15:48.494816",
+        "value_score": 70
+      },
+      {
+        "name": "intentkit",
+        "full_name": "crestalnetwork/intentkit",
+        "url": "https://github.com/crestalnetwork/intentkit",
+        "stars": 6418,
+        "description": "An open and fair framework for everyone to build AI agents equipped with powerful skills. Launch your agent, improve the world, your wallet, or both!",
+        "language": "Python",
+        "topics": [
+          "agentic-workflow",
+          "ai",
+          "ai-agent",
+          "ai-agent-framework",
+          "blockchain",
+          "intents",
+          "launchpad",
+          "python",
+          "web3"
+        ],
+        "analyzed_at": "2025-05-29T13:15:48.494848",
+        "value_score": 90
+      },
+      {
+        "name": "Integuru",
+        "full_name": "Integuru-AI/Integuru",
+        "url": "https://github.com/Integuru-AI/Integuru",
+        "stars": 4351,
+        "description": "The first AI agent that builds permissionless integrations through reverse engineering platforms' internal APIs.",
+        "language": "Python",
+        "topics": [
+          "agent",
+          "agents",
+          "ai-agent",
+          "ai-agents",
+          "api",
+          "apis",
+          "automation",
+          "integration",
+          "integrations",
+          "llm",
+          "open-source",
+          "openapi",
+          "robotic-process-automation",
+          "rpa",
+          "unofficial-api",
+          "unofficial-apis"
+        ],
+        "analyzed_at": "2025-05-29T13:15:48.494862",
+        "value_score": 100
+      },
+      {
+        "name": "MoneyPrinterTurbo",
+        "full_name": "harry0703/MoneyPrinterTurbo",
+        "url": "https://github.com/harry0703/MoneyPrinterTurbo",
+        "stars": 34915,
+        "description": "\u5229\u7528AI\u5927\u6a21\u578b\uff0c\u4e00\u952e\u751f\u6210\u9ad8\u6e05\u77ed\u89c6\u9891 Generate short videos with one click using AI LLM.",
+        "language": "Python",
+        "topics": [
+          "ai",
+          "automation",
+          "chatgpt",
+          "moviepy",
+          "python",
+          "shortvideo",
+          "tiktok"
+        ],
+        "analyzed_at": "2025-05-29T13:15:48.829120",
+        "value_score": 90
+      },
+      {
+        "name": "Jobs_Applier_AI_Agent_AIHawk",
+        "full_name": "feder-cr/Jobs_Applier_AI_Agent_AIHawk",
+        "url": "https://github.com/feder-cr/Jobs_Applier_AI_Agent_AIHawk",
+        "stars": 28224,
+        "description": "AIHawk aims to easy job hunt process by automating the job application process. Utilizing artificial intelligence, it enables users to apply for multiple jobs in a tailored way.",
+        "language": "Python",
+        "topics": [
+          "agent",
+          "application-resume",
+          "artificial-intelligence",
+          "automate",
+          "automation",
+          "bot",
+          "chatgpt",
+          "chrome",
+          "gpt",
+          "human-resources",
+          "job",
+          "jobs",
+          "jobsearch",
+          "jobseeker",
+          "opeai",
+          "python",
+          "resume",
+          "scraper",
+          "scraping",
+          "selenium"
+        ],
+        "analyzed_at": "2025-05-29T13:15:48.829151",
+        "value_score": 100
+      },
+      {
+        "name": "cursor-free-vip",
+        "full_name": "yeongpin/cursor-free-vip",
+        "url": "https://github.com/yeongpin/cursor-free-vip",
+        "stars": 27646,
+        "description": "[Support 0.49.x]\uff08Reset Cursor AI MachineID & Bypass Higher Token Limit\uff09 Cursor Ai \uff0c\u81ea\u52a8\u91cd\u7f6e\u673a\u5668ID \uff0c \u514d\u8d39\u5347\u7ea7\u4f7f\u7528Pro\u529f\u80fd: You've reached your trial request limit. / Too many free trial accounts used on this machine. Please upgrade to pro. We have this limit in place to prevent abuse. Please let us know if you believe this is a mistake.",
+        "language": "Python",
+        "topics": [
+          "automation",
+          "cursor",
+          "cursor-ai",
+          "cursor-ide",
+          "cursorai",
+          "cursors",
+          "free",
+          "freetrial",
+          "pro"
+        ],
+        "analyzed_at": "2025-05-29T13:15:48.829168",
+        "value_score": 90
+      }
+    ],
+    "count": 6,
+    "topics": [
+      "ai-agent",
+      "automation"
+    ],
+    "timestamp": "2025-05-29T13:15:48.829172"
+  }
+}
