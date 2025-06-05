@@ -198,5 +198,13 @@
     "tasks_completed_last_24h": 0,
     "active_agents": 19,
     "pionex_balance_usdt": 1000.0
+  },
+  {
+    "timestamp": "2025-06-05T10:53:55.185704+00:00",
+    "tasks_pending": 0,
+    "tasks_in_progress": 1,
+    "tasks_completed_last_24h": 0,
+    "active_agents": 19,
+    "pionex_balance_usdt": 1000.0
   }
 ]
