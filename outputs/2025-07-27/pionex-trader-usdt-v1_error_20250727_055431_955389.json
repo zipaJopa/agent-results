@@ -1,0 +1,4 @@
+{
+  "error": "Pionex init failed",
+  "details": "module 'ccxt' has no attribute 'pionex'"
+}
